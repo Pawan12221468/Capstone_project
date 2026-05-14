@@ -67,3 +67,6 @@ An intelligent learning and document analysis platform that transforms study mat
 🤝 Support
 📧 Email: puk.dubeyo1@gmail.com
 📄 License: MIT
+
+---
+**Note:** If sign-in fails on the deployed link, ensure `REACT_APP_API_URL` is set to your backend URL in your deployment settings.
