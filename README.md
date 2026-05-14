@@ -65,5 +65,5 @@ An intelligent learning and document analysis platform that transforms study mat
 - **Pill-Shaped Search**: Professional, modern search interface for the AI Roadmap generator.
 
 🤝 Support
-📧 Email: nishudubey2905@gmail.com
+📧 Email: puk.dubeyo1@gmail.com
 📄 License: MIT
