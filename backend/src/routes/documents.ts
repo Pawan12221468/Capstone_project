@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -10,7 +10,7 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 const router = express.Router();
 
 // Health check for documents route
-router.get('/health', (req, res) => {
+router.get('/health', (req, res: Response) => {
   res.json({ 
     status: 'ok', 
     route: 'documents',
@@ -124,7 +124,7 @@ router.post('/upload', authenticateToken, (req, res, next) => {
     }
     next();
   });
-}, async (req: AuthRequest, res) => {
+}, async (req: AuthRequest, res: Response) => {
   try {
     console.log('=== UPLOAD REQUEST START ===');
     console.log('Upload request received');
@@ -220,7 +220,7 @@ router.post('/upload', authenticateToken, (req, res, next) => {
 });
 
 // Get all documents for a user
-router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
@@ -236,7 +236,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Get specific document
-router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
@@ -262,7 +262,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Reprocess document with updated extraction logic
-router.post('/:id/reprocess', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:id/reprocess', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
@@ -365,7 +365,7 @@ router.post('/:id/reprocess', authenticateToken, async (req: AuthRequest, res) =
 });
 
 // Test PDF extraction for debugging
-router.get('/:id/test-extraction', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:id/test-extraction', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
@@ -415,7 +415,7 @@ router.get('/:id/test-extraction', authenticateToken, async (req: AuthRequest, r
 });
 
 // Delete document
-router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {

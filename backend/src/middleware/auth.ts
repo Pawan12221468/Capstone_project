@@ -6,6 +6,8 @@ export interface AuthRequest extends Request {
     userId: string;
     email: string;
   };
+  file?: any;
+  files?: any;
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {

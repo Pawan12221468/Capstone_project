@@ -1,11 +1,11 @@
-import express from 'express';
+import express, { Response } from 'express';
 import databaseService from '../services/databaseService';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
 
 // GET /api/progress — get all roadmap progress for the current user
-router.get('/', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
@@ -39,7 +39,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // GET /api/progress/:roadmapId — get progress for a specific roadmap
-router.get('/:roadmapId', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:roadmapId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { roadmapId } = req.params;
     const userId = req.user?.userId;
@@ -58,7 +58,7 @@ router.get('/:roadmapId', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // POST /api/progress/:roadmapId — save completed topics for a roadmap
-router.post('/:roadmapId', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:roadmapId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { roadmapId } = req.params;
     const { completedTopics } = req.body;
