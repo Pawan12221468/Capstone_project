@@ -1,0 +1,251 @@
+// Knowledge Scout Database Schema - MONGODB VERSION
+// This schema defines the data models for the Knowledge Scout application using MongoDB
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and user management
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  name      String
+  avatar    String?
+  password  String
+  role      String   @default("student") // "student", "teacher", "admin"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  documents     Document[]
+  chatSessions  ChatSession[]
+  teams         TeamMember[]
+  createdTeams  Team[]        @relation("TeamCreator")
+  roadmaps      Roadmap[]
+  tutorSessions TutorSession[]
+  progressRecords RoadmapProgress[]
+  ownedClassrooms Classroom[]   @relation("ClassroomTeacher")
+  joinedClassrooms ClassroomStudent[]
+  submissions   AssignmentSubmission[]
+
+  @@map("users")
+}
+
+// Team model for collaboration
+model Team {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creatorId String @db.ObjectId
+
+  // Relations
+  creator User         @relation("TeamCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members TeamMember[]
+
+  @@map("teams")
+}
+
+// Team membership model
+model TeamMember {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  teamId String @db.ObjectId
+  role   String @default("member") // member, admin, owner
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@map("team_members")
+}
+
+// Classroom model for LMS
+model Classroom {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  code        String   @unique // For students to join
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  teacherId String @db.ObjectId
+
+  teacher     User     @relation("ClassroomTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  students    ClassroomStudent[]
+  assignments Assignment[]
+
+  @@map("classrooms")
+}
+
+// Join table for Students and Classrooms
+model ClassroomStudent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  classroomId String @db.ObjectId
+  studentId String @db.ObjectId
+  joinedAt    DateTime @default(now())
+
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classroomId, studentId])
+  @@map("classroom_students")
+}
+
+// Assignment links a Classroom to Study Materials/Roadmaps/Quizzes
+model Assignment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  type        String   // "document", "roadmap", "quiz"
+  referenceId String   // ID of the target resource
+  classroomId String @db.ObjectId
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+
+  @@map("assignments")
+}
+
+// Tracks student completion / scores for Assignments
+model AssignmentSubmission {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  assignmentId String @db.ObjectId
+  studentId String @db.ObjectId
+  status       String   @default("pending") // "pending", "completed"
+  score        Int?     // For quizzes
+  progress     Json?    // For tracking roadmap progress
+  submittedAt  DateTime?
+  updatedAt    DateTime @updatedAt
+
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, studentId])
+  @@map("assignment_submissions")
+}
+
+// Document model for uploaded files
+model Document {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  filename     String
+  originalName String
+  filePath     String
+  fileSize     Int
+  mimeType     String
+  status       String   @default("processing") // processing, completed, error
+  extractedText String?
+  summary      String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId String @db.ObjectId
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatSessions ChatSession[]
+
+  @@map("documents")
+}
+
+// Chat session model for Q&A conversations
+model ChatSession {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId String @db.ObjectId
+  documentId String @db.ObjectId
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@map("chat_sessions")
+}
+
+// Message model for chat conversations
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  role      String   // user, assistant
+  timestamp DateTime @default(now())
+  sessionId String @db.ObjectId
+
+  // Relations
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// Roadmap model for AI-generated learning paths
+model Roadmap {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  topic     String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String @db.ObjectId
+
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progressRecords RoadmapProgress[]
+
+  @@map("roadmaps")
+}
+
+// AI Tutor session model
+model TutorSession {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  topic     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String @db.ObjectId
+
+  // Relations
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages TutorMessage[]
+
+  @@map("tutor_sessions")
+}
+
+// AI Tutor message model
+model TutorMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  role      String   // user, assistant
+  timestamp DateTime @default(now())
+  sessionId String @db.ObjectId
+
+  // Relations
+  session TutorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("tutor_messages")
+}
+
+// Progress tracking for roadmap topics
+model RoadmapProgress {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  roadmapId String @db.ObjectId
+  userId String @db.ObjectId
+  completedTopics Json     @default("[]")
+  lastActivityAt  DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  roadmap Roadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roadmapId, userId])
+  @@map("roadmap_progress")
+}

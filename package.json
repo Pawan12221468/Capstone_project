@@ -1,0 +1,30 @@
+{
+  "name": "knowledge-scout",
+  "version": "1.0.0",
+  "description": "Intelligent document analysis and Q&A platform",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "build": "cd backend && npm install && npm run build && npx prisma generate",
+    "start": "cd backend && npx prisma migrate deploy && npm start",
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": [
+    "document-analysis",
+    "ai",
+    "qa",
+    "knowledge-management"
+  ],
+  "author": "Knowledge Scout Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
