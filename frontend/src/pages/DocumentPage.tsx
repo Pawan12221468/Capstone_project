@@ -189,7 +189,7 @@ const DocumentPage: React.FC = () => {
              </button>
            </div>
 
-           <div className="flex-1 overflow-y-auto relative p-6 custom-scrollbar">
+           <div className={`flex-1 relative flex flex-col ${activeTab === 'qa' ? 'overflow-hidden p-3 sm:p-4' : 'overflow-y-auto p-6 custom-scrollbar'}`}>
              <AnimatePresence mode="wait">
                 {activeTab === 'summary' && (
                  <motion.div key="summary" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
@@ -252,7 +252,7 @@ const DocumentPage: React.FC = () => {
                )}
 
                {activeTab === 'qa' && (
-                 <motion.div key="qa" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="h-full flex flex-col">
+                 <motion.div key="qa" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex-1 h-full flex flex-col overflow-hidden min-h-0">
                    {!sessionId ? (
                      <div className="h-full flex flex-col items-center justify-center bg-[#0f172a] rounded-2xl border border-white/5 p-8 text-center">
                        <MessageSquare className="w-14 h-14 text-indigo-400/30 mb-4" />
@@ -265,7 +265,7 @@ const DocumentPage: React.FC = () => {
                        {document.status === 'processing' && <p className="text-sm text-amber-400 mt-4">Document is currently processing. Q&A will be available shortly.</p>}
                      </div>
                    ) : (
-                     <div className="flex-1 flex flex-col h-full bg-[#0f172a] rounded-2xl border border-white/5 overflow-hidden">
+                     <div className="flex-1 flex flex-col bg-[#0f172a] rounded-2xl border border-white/5 overflow-hidden min-h-0">
                        {/* Chat Messages */}
                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                           {messages.length === 0 && (
@@ -296,8 +296,8 @@ const DocumentPage: React.FC = () => {
                              value={inputMsg}
                              onChange={(e) => setInputMsg(e.target.value)}
                              disabled={sendingMsg}
-                             placeholder="Ask a question about this document..."
-                             className="w-full bg-white/5 border border-white/10 rounded-full pl-5 pr-14 py-3 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/30 transition-all text-sm"
+                             placeholder="Ask a question..."
+                             className="w-full bg-white/5 border border-white/10 rounded-full pl-5 pr-14 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/30 transition-all text-sm"
                            />
                            <button
                              type="submit"
