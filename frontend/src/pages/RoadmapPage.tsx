@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   Circle,
   Trophy,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 const RoadmapPage: React.FC = () => {
@@ -30,8 +31,18 @@ const RoadmapPage: React.FC = () => {
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
   const [currentRoadmap, setCurrentRoadmap] = useState<RoadmapData | null>(null);
   const [currentRoadmapId, setCurrentRoadmapId] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
   const [completedTopics, setCompletedTopics] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Calculate progress
   const totalTopics = currentRoadmap?.phases.reduce((acc, p) => acc + p.topics.length, 0) || 0;
@@ -132,12 +143,19 @@ const RoadmapPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#020617] flex flex-col md:flex-row">
       {/* History Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-full md:w-64' : 'hidden'} bg-[#0a0f1e] border-r border-white/5 flex flex-col transition-all duration-300`}>
+      <div className={`${isSidebarOpen ? 'w-full md:w-64 border-b md:border-b-0 md:border-r' : 'hidden'} bg-[#0a0f1e] border-white/5 flex flex-col transition-all duration-300 shrink-0`}>
         <div className="p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
           <div className="flex items-center space-x-2 text-indigo-400 font-semibold">
             <History className="w-5 h-5" />
             <span>Your Maps</span>
           </div>
+          {/* Close button on mobile */}
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {roadmaps.length === 0 ? (
@@ -164,41 +182,54 @@ const RoadmapPage: React.FC = () => {
       </div>
 
       {/* Main Content Arena */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header/Input Section */}
-        <div className="bg-[#0a0f1e] px-6 py-8 border-b border-white/5 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              className="inline-flex items-center justify-center p-3 bg-indigo-500/15 rounded-full mb-4"
-            >
-              <Map className="w-8 h-8 text-indigo-400" />
-            </motion.div>
-            <h1 className="text-3xl font-bold text-white mb-2">AI Learning Roadmap</h1>
-            <p className="text-slate-400 mb-8 max-w-2xl mx-auto">
-              Tell us what you want to learn, and our AI will chart the course. From foundations to advanced projects, get a structured path in seconds.
-            </p>
+        <div className="bg-[#0a0f1e] px-4 sm:px-6 py-6 sm:py-8 border-b border-white/5 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            {/* Sidebar toggle for mobile & desktop */}
+            <div className="flex justify-between items-center mb-6">
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-semibold transition-all border border-white/5 shadow-sm active:scale-95"
+              >
+                <History className="w-4 h-4 text-indigo-400" />
+                <span>{isSidebarOpen ? 'Hide History' : 'Show History'}</span>
+              </button>
+            </div>
+
+            <div className="text-center">
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="inline-flex items-center justify-center p-3 bg-indigo-500/15 rounded-full mb-4"
+              >
+                <Map className="w-8 h-8 text-indigo-400" />
+              </motion.div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">AI Learning Roadmap</h1>
+              <p className="text-sm sm:text-base text-slate-400 mb-6 sm:mb-8 max-w-2xl mx-auto">
+                Tell us what you want to learn, and our AI will chart the course. From foundations to advanced projects, get a structured path in seconds.
+              </p>
+            </div>
 
             <form onSubmit={handleGenerate} className="relative max-w-2xl mx-auto">
               {/* Outer glow/border wrapper */}
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 rounded-full blur opacity-20 group-focus-within:opacity-40 transition duration-1000 group-focus-within:duration-200"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 rounded-2xl sm:rounded-full blur opacity-20 group-focus-within:opacity-40 transition duration-1000 group-focus-within:duration-200"></div>
                 
-                <div className="relative flex items-center rounded-full bg-[#0f172a] border border-white/10 group-focus-within:border-indigo-500/40 transition-all duration-300 shadow-2xl overflow-hidden">
+                <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center rounded-2xl sm:rounded-full bg-[#0f172a] border border-white/10 group-focus-within:border-indigo-500/40 transition-all duration-300 shadow-2xl overflow-hidden p-2 sm:p-0">
                   <input
                     type="text"
-                    className="w-full py-5 px-8 text-white outline-none text-lg bg-transparent placeholder-slate-600 font-medium"
+                    className="w-full py-3.5 sm:py-5 px-4 sm:px-8 text-white outline-none text-base sm:text-lg bg-transparent placeholder-slate-600 font-medium"
                     placeholder="e.g. React, Python, Data Science, AWS..."
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
                     disabled={loading}
                   />
-                  <div className="pr-2">
+                  <div className="mt-2 sm:mt-0 sm:pr-2 shrink-0 flex">
                     <button
                       type="submit"
                       disabled={loading || !topic.trim()}
-                      className="px-10 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-full transition-all disabled:opacity-50 flex items-center gap-2 shrink-0 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 active:scale-95"
+                      className="w-full sm:w-auto justify-center px-6 sm:px-10 py-3 sm:py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl sm:rounded-full transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 active:scale-95"
                     >
                       {loading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -228,7 +259,7 @@ const RoadmapPage: React.FC = () => {
         </div>
 
         {/* Roadmap Display Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#020617] p-6 md:p-10">
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#020617] p-4 sm:p-6 md:p-10">
           <div className="max-w-4xl mx-auto">
             <AnimatePresence mode="wait">
               {!currentRoadmap && !loading && (
@@ -252,12 +283,12 @@ const RoadmapPage: React.FC = () => {
                   transition={{ duration: 0.5, staggerChildren: 0.1 }}
                 >
                   {/* Title & Metadata */}
-                  <div className="bg-[#0f172a] rounded-3xl p-8 border border-white/5 shadow-xl mb-8 relative overflow-hidden">
+                  <div className="bg-[#0f172a] rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-white/5 shadow-xl mb-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-3xl opacity-10 translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-purple-600" />
 
                     <div className="relative z-10">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/5 pb-6 mb-6">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/5 pb-6 mb-6 gap-4">
                         <div>
                           <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-2">
                             {currentRoadmap.topic}
@@ -269,7 +300,7 @@ const RoadmapPage: React.FC = () => {
                         </div>
 
                         {/* Progress Display */}
-                        <div className="mt-6 md:mt-0 bg-[#020617] border border-white/5 rounded-2xl p-4 min-w-[200px]">
+                        <div className="w-full md:w-auto bg-[#020617] border border-white/5 rounded-2xl p-4 md:min-w-[240px]">
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Progress</span>
                             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">{progressPercent}%</span>
@@ -286,16 +317,16 @@ const RoadmapPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <p className="text-slate-400 text-base leading-relaxed max-w-3xl">
+                      <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-3xl">
                         {currentRoadmap.description}
                       </p>
                     </div>
                   </div>
 
                   {/* Vertical Unified Timeline View */}
-                  <div className="relative pl-6 md:pl-8 lg:pl-12 py-8 max-w-4xl">
+                  <div className="relative pl-4 sm:pl-8 lg:pl-12 py-8 max-w-4xl">
                     {/* Timeline line */}
-                    <div className="absolute left-6 md:left-8 top-8 bottom-8 w-px bg-gradient-to-b from-indigo-500/50 via-purple-500/30 to-transparent rounded-full" />
+                    <div className="absolute left-4 sm:left-8 top-8 bottom-8 w-px bg-gradient-to-b from-indigo-500/50 via-purple-500/30 to-transparent rounded-full" />
 
                     <div className="space-y-12">
                       {currentRoadmap.phases.map((phase, index) => {
@@ -311,12 +342,12 @@ const RoadmapPage: React.FC = () => {
                             className="relative flex flex-col group"
                           >
                             {/* Timeline dot */}
-                            <div className="absolute -left-6 md:-left-8 w-5 h-5 rounded-full bg-[#020617] border-4 border-indigo-500 transform -translate-x-1/2 mt-6 z-10 group-hover:scale-125 group-hover:border-purple-400 transition-all duration-300">
+                            <div className="absolute -left-4 sm:-left-8 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#020617] border-4 border-indigo-500 transform -translate-x-1/2 mt-6 z-10 group-hover:scale-125 group-hover:border-purple-400 transition-all duration-300">
                               {isPhaseCompleted && <div className="absolute inset-0 bg-indigo-500 rounded-full m-0.5 animate-pulse" />}
                             </div>
 
                             {/* Main Card */}
-                            <div className="ml-6 md:ml-8 bg-[#0f172a] p-7 md:p-9 rounded-3xl border border-white/5 hover:border-indigo-500/20 shadow-xl transition-all duration-500 relative overflow-hidden group-hover:-translate-y-1">
+                            <div className="ml-4 sm:ml-8 bg-[#0f172a] p-4 sm:p-7 md:p-9 rounded-2xl sm:rounded-3xl border border-white/5 hover:border-indigo-500/20 shadow-xl transition-all duration-500 relative overflow-hidden group-hover:-translate-y-1">
                                {/* Decorative bg */}
                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-bl-full z-0 pointer-events-none" />
 
