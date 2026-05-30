@@ -80,7 +80,7 @@ const TutorPage: React.FC = () => {
   const [sessionLoading, setSessionLoading] = useState(false);
   const [creatingSession, setCreatingSession] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
   const [showTopicModal, setShowTopicModal] = useState(false);
 
   // Quiz States
@@ -101,6 +101,16 @@ const TutorPage: React.FC = () => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, aiTyping]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -309,7 +319,19 @@ const TutorPage: React.FC = () => {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-[#0d0d0f] overflow-hidden select-text">
+    <div className="flex h-[calc(100vh-64px)] bg-[#0d0d0f] overflow-hidden select-text relative">
+      {/* Sidebar Backdrop Overlay on Mobile */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 z-20 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
       <AnimatePresence initial={false}>
@@ -320,7 +342,7 @@ const TutorPage: React.FC = () => {
             animate={{ width: 260, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
-            className="shrink-0 flex flex-col bg-[#111113] border-r border-white/[0.07] overflow-hidden"
+            className="absolute md:relative inset-y-0 left-0 z-30 shrink-0 flex flex-col bg-[#111113] border-r border-white/[0.07] overflow-hidden shadow-2xl md:shadow-none h-full"
           >
             {/* Sidebar top */}
             <div className="p-4 space-y-3">
@@ -398,7 +420,7 @@ const TutorPage: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 relative">
 
         {/* Top bar */}
-        <div className="shrink-0 flex items-center gap-3 px-5 py-3 border-b border-white/[0.06] bg-[#0d0d0f]/80 backdrop-blur-sm z-10">
+        <div className="shrink-0 flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.06] bg-[#0d0d0f]/80 backdrop-blur-sm z-10">
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
@@ -411,34 +433,36 @@ const TutorPage: React.FC = () => {
           {roadmapContext && (
             <button
               onClick={() => navigate('/roadmaps')}
-              className="px-3 py-1.5 rounded-lg text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-1.5 text-xs mr-2 relative"
+              className="px-2.5 py-1.5 rounded-lg text-neutral-300 hover:text-white bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-1 text-[0.75rem] sm:text-xs mr-1 shrink-0 relative"
             >
               <Map className="w-3.5 h-3.5" />
-              Back to Roadmap
+              <span className="hidden sm:inline">Back to </span>Roadmap
               <span className="w-2 h-2 rounded-full bg-blue-500 absolute -top-1 -right-1 shadow-sm border border-[#0d0d0f]" />
             </button>
           )}
 
           {activeSession ? (
             <>
-              <div className="flex items-center gap-2">
-                <span className="text-base">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-sm shrink-0">
                   {SUGGESTED_TOPICS.find(t => t.label.toLowerCase() === activeSession.topic.toLowerCase())?.icon ?? '📘'}
                 </span>
-                <span className="font-semibold text-white text-sm">Learning: {activeSession.topic}</span>
+                <span className="font-semibold text-white text-[0.8rem] sm:text-sm truncate">
+                  <span className="hidden sm:inline">Learning: </span>{activeSession.topic}
+                </span>
               </div>
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleTakeQuiz}
-                className="ml-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-bold transition-colors uppercase tracking-wider shadow-sm"
+                className="ml-2 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-[0.7rem] sm:text-xs font-bold transition-colors uppercase tracking-wider tracking-wider shadow-sm shrink-0"
               >
-                <Brain className="w-3.5 h-3.5" />
-                Take Quiz
+                <Brain className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span>Quiz</span>
               </motion.button>
-              <div className="flex items-center gap-1.5 ml-auto">
+              <div className="flex items-center gap-1.5 ml-auto shrink-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-500" />
-                <span className="text-xs text-neutral-500">AI Assistant</span>
+                <span className="hidden sm:inline text-xs text-neutral-500">AI Assistant</span>
               </div>
             </>
           ) : (
@@ -490,7 +514,7 @@ const TutorPage: React.FC = () => {
 
                 <div className="mb-6">
                   <p className="text-[0.7rem] font-semibold text-neutral-600 uppercase tracking-widest mb-2.5">Popular topics</p>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {SUGGESTED_TOPICS.map(t => (
                       <button
                         key={t.label}
@@ -690,7 +714,7 @@ const TutorPage: React.FC = () => {
                 Learn any concept through conversation. Your tutor breaks it down simply, uses examples, and gives you exercises to practice.
               </p>
 
-              <div className="grid grid-cols-2 gap-3 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                 {[
                   { icon: Zap, label: 'Instant answers', desc: 'No waiting. Ask and learn.' },
                   { icon: Code2, label: 'Code examples', desc: 'Concepts shown in real code.' },
@@ -836,9 +860,9 @@ const TutorPage: React.FC = () => {
             </div>
 
             {/* Input bar */}
-            <div className="shrink-0 bg-[#0d0d0f] px-4 pb-5 pt-3 border-t border-white/[0.05]">
+            <div className="shrink-0 bg-[#0d0d0f] px-3 sm:px-4 pb-4 sm:pb-5 pt-2 sm:pt-3 border-t border-white/[0.05]">
               <div className="max-w-3xl mx-auto">
-                <div className="flex items-end gap-3 bg-[#1c1c21] border border-white/[0.1] rounded-2xl px-4 py-3.5 shadow-lg focus-within:ring-1 focus-within:ring-blue-500/30 focus-within:border-blue-500/25 transition-all">
+                <div className="flex items-end gap-2.5 bg-[#1c1c21] border border-white/[0.1] rounded-2xl px-3.5 sm:px-4 py-3 sm:py-3.5 shadow-lg focus-within:ring-1 focus-within:ring-blue-500/30 focus-within:border-blue-500/25 transition-all">
                   <textarea
                     ref={inputRef}
                     value={input}
